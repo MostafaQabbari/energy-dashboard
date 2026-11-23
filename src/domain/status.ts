@@ -1,23 +1,22 @@
-import type {Device } from '../types/devices.ts';
+import type { Device, DeviceStatus } from '../types/devices';
 
+export const OFFLINE_THRESHOLD_MS = 15 * 60 * 1000; 
 
-function getDeviceStatus(device: Device ) {
+export function getDeviceStatus(device: Device, now: Date): DeviceStatus {
 
-const lastseen = device.lastseen;
-const msAgo = new Date().getTime() - Date.parse(lastseen);
-const offlineTimeLimit = 60000 * 15;
+    if (device.fault) {
+        return 'fault';
+    }
 
-if (device.fault === true) {
-    return 'fault'
+    const lastSeenMs = Date.parse(device.lastSeen);
+    if (Number.isNaN(lastSeenMs)) {
+        return 'offline'; 
+    }
+
+    const msAgo = now.getTime() - lastSeenMs;
+    if (msAgo > OFFLINE_THRESHOLD_MS) {
+        return 'offline';
+    }
+
+    return 'online';
 }
-else if(msAgo > offlineTimeLimit) {
-    return 'offline'    
-}
-else {
-    return 'online'
-} 
-
-    
-}
-
-export { getDeviceStatus };
